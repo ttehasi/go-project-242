@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint:
-    name: Lint
+    name: Lint Build and Run
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,8 +22,18 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: latest
+          version: v1.65.0
           args: --timeout=5m
+
+      - name: Build application
+        run: |
+          go build -o bin/hexlet-path-size ./cmd/hexlet-path-size
+          echo "Build completed successfully!"
+          
+      - name: Run application
+        run: |
+          ./bin/hexlet-path-size
+    
 
   # test:
   #   name: Test
@@ -48,23 +58,3 @@ jobs:
   #     - name: Upload coverage report
   #       uses: codecov/codecov-action@v3
   #       if: success()
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.25.5'
-          
-      - name: Build application
-        run: |
-          go build -o bin/hexlet-path-size ./cmd/hexlet-path-size
-          echo "Build completed successfully!"
-          
-      - name: Run application
-        run: |
-          ./bin/hexlet-path-size
