@@ -31,7 +31,7 @@ jobs:
           
       - name: Run application
         run: |
-          ./bin/hexlet-path-size
+          ./bin/hexlet-path-size -h
         
       - name: Tests
         run: |
