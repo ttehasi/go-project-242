@@ -17,28 +17,28 @@ func TestGetSize(t *testing.T) {
 
 	parentDir := filepath.Dir(wd)
 
-	res, err := GetSize(parentDir + "/hexlet-go-1/testdata/testfile1.txt")
+	res, err := GetSize(parentDir + "/testdata/testfile1.txt")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(9))
 
-	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/textfile2.txt")
+	res, err = GetSize(parentDir + "/testdata/textfile2.txt")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(0))
 
-	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/testfolder")
+	res, err = GetSize(parentDir + "/testdata/testfolder")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(4))
 
-	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/testfolderempty")
+	res, err = GetSize(parentDir + "/testdata/testfolderempty")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
