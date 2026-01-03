@@ -2,34 +2,43 @@ package code
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestGetSize(t *testing.T) {
-	res, err := GetSize("testdata/testfile1.txt")
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	parentDir := filepath.Dir(wd)
+
+	res, err := GetSize(parentDir + "/hexlet-go-1/testdata/testfile1.txt")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(9))
 
-	res, err = GetSize("testdata/textfile2.txt")
+	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/textfile2.txt")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(0))
 
-	res, err = GetSize("testdata/testfolder")
+	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/testfolder")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(4))
 
-	res, err = GetSize("testdata/testfolderempty")
+	res, err = GetSize(parentDir + "/hexlet-go-1/testdata/testfolderempty")
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
