@@ -2,6 +2,7 @@ package code
 
 import (
 	"fmt"
+	"math"
 	"os"
 )
 
@@ -54,4 +55,40 @@ func GetSize(path string) (int64, error) {
 	}
 
 	return 0, fmt.Errorf("%s - не обычный файл и не директория", path)
+}
+
+func FormatSize(size int64, formated bool) string {
+	if !formated {
+		return fmt.Sprintf("%dB", size)
+	}
+	type Res struct {
+		size float64
+		ed   string
+	}
+	res := Res{size: float64(size), ed: "B"}
+	if res.size >= float64(1024*1024*1024*1024*1024*1024) {
+		res.size = math.Round((res.size/float64(1024*1024*1024*1024*1024*1024))*10) / 10
+		res.ed = "EB"
+	}
+	if res.size >= float64(1024*1024*1024*1024*1024) {
+		res.size = math.Round((res.size/float64(1024*1024*1024*1024*1024))*10) / 10
+		res.ed = "PB"
+	}
+	if res.size >= float64(1024*1024*1024*1024) {
+		res.size = math.Round((res.size/float64(1024*1024*1024*1024))*10) / 10
+		res.ed = "TB"
+	}
+	if res.size >= float64(1024*1024*1024) {
+		res.size = math.Round((res.size/float64(1024*1024*1024))*10) / 10
+		res.ed = "GB"
+	}
+	if res.size >= float64(1024*1024) {
+		res.size = math.Round((res.size/float64(1024*1024))*10) / 10
+		res.ed = "MB"
+	}
+	if res.size >= float64(1024) {
+		res.size = math.Round((res.size/float64(1024))*10) / 10
+		res.ed = "KB"
+	}
+	return fmt.Sprintf("%.1f%s", res.size, res.ed)
 }
