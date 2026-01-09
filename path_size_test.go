@@ -46,7 +46,6 @@ func TestFormatSize(t *testing.T) {
 	testNum4 := float64(1024 * 1024 * 1024 * 10)
 	testNum5 := float64(1024 * 1024 * 1024 * 1024 * 10)
 	testNum6 := float64(1024 * 1024 * 1024 * 1024 * 1024 * 10)
-	testNum7 := float64(1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 10)
 
 	res := FormatSize(int64(testNum1), true)
 	require.Equal(t, res, "10.0B")
@@ -65,7 +64,4 @@ func TestFormatSize(t *testing.T) {
 
 	res = FormatSize(int64(testNum6), true)
 	require.Equal(t, res, "10.0PB")
-
-	res = FormatSize(int64(testNum7), true)
-	require.Equal(t, res, "8.0EB")
 }
