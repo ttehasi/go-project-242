@@ -11,7 +11,7 @@ import (
 func GetSize(path string, recur, isAll bool) (int64, error) {
 	info, err := os.Lstat(path)
 	if err != nil {
-		return 0, fmt.Errorf("Ошибка %w", err)
+		return 0, fmt.Errorf("ошибка %w", err)
 	}
 	if info.Mode()&os.ModeSymlink != 0 {
 		targetInfo, err := os.Stat(path)
@@ -169,7 +169,7 @@ func FormatSize(size int64, formated bool) string {
 func GetPathSize(path string, recursive, human, all bool) (string, error) {
 	size, err := GetSize(path, recursive, all)
 	if err != nil {
-		return "Ошибка", err
+		return "", fmt.Errorf("ошибка %w", err)
 	}
 	return FormatSize(size, human), nil
 }
