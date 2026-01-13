@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 )
 
-func GetSize(path string) (int64, error) {
+func GetSize(path string, isAll bool) (int64, error) {
 	info, err := os.Lstat(path)
 	if err != nil {
 		return 0, fmt.Errorf("Ошибка %w", err)
@@ -19,7 +20,15 @@ func GetSize(path string) (int64, error) {
 		info = targetInfo
 	}
 	if info.Mode().IsRegular() {
-		return info.Size(), nil
+		if isAll {
+			return info.Size(), nil
+		} else {
+			if strings.HasPrefix(info.Name(), ".") {
+				return int64(0), nil
+			} else {
+				return info.Size(), nil
+			}
+		}
 	}
 
 	if info.IsDir() {
@@ -28,29 +37,68 @@ func GetSize(path string) (int64, error) {
 			return 0, fmt.Errorf("ошибка чтения директории %s: %w", path, err)
 		}
 		var totalSize int64 = 0
-		for _, entry := range entries {
-			fullPath := path + "/" + entry.Name()
+		if isAll {
+			for _, entry := range entries {
+				fullPath := path + "/" + entry.Name()
 
-			if entry.IsDir() {
-				continue
-			}
-			info, err := entry.Info()
-			if err != nil {
-				continue
-			}
-			if entry.Type()&os.ModeSymlink != 0 {
-				linkInfo, err := os.Stat(fullPath)
+				if entry.IsDir() {
+					continue
+				}
+				info, err := entry.Info()
 				if err != nil {
 					continue
 				}
+				if entry.Type()&os.ModeSymlink != 0 {
+					linkInfo, err := os.Stat(fullPath)
+					if err != nil {
+						continue
+					}
 
-				if linkInfo.Mode().IsRegular() {
-					totalSize += linkInfo.Size()
+					if linkInfo.Mode().IsRegular() {
+						totalSize += linkInfo.Size()
+					}
+				} else if info.Mode().IsRegular() {
+					totalSize += info.Size()
 				}
-			} else if info.Mode().IsRegular() {
-				totalSize += info.Size()
+			}
+		} else {
+			if strings.HasPrefix(info.Name(), ".") {
+				return int64(0), nil
+			} else {
+				for _, entry := range entries {
+					fullPath := path + "/" + entry.Name()
+
+					if entry.IsDir() {
+						continue
+					}
+					info, err := entry.Info()
+					if err != nil {
+						continue
+					}
+					if entry.Type()&os.ModeSymlink != 0 {
+						linkInfo, err := os.Stat(fullPath)
+						if err != nil {
+							continue
+						}
+
+						if linkInfo.Mode().IsRegular() {
+							if strings.HasPrefix(linkInfo.Name(), ".") {
+								totalSize += 0
+							} else {
+								totalSize += linkInfo.Size()
+							}
+						}
+					} else if info.Mode().IsRegular() {
+						if strings.HasPrefix(info.Name(), ".") {
+							totalSize += 0
+						} else {
+							totalSize += info.Size()
+						}
+					}
+				}
 			}
 		}
+
 		return totalSize, nil
 	}
 

@@ -17,26 +17,33 @@ func TestGetSize(t *testing.T) {
 
 	// parentDir := filepath.Dir(wd)
 
-	res, err := GetSize("testdata/testfile1.txt")
+	res, err := GetSize("testdata/testfile1.txt", false)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(9))
 
-	res, err = GetSize("testdata/textfile2.txt")
+	res, err = GetSize("testdata/textfile2.txt", false)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(0))
 
-	res, err = GetSize("testdata/testfolder")
+	res, err = GetSize("testdata/testfolder", false)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
 	require.Equal(t, res, int64(4))
+
+	res, err = GetSize("testdata/testfolder", true)
+	if err != nil {
+		fmt.Println(err)
+		t.FailNow()
+	}
+	require.Equal(t, res, int64(8))
 }
 
 func TestFormatSize(t *testing.T) {
