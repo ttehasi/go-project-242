@@ -131,6 +131,9 @@ func FormatSize(size int64, formated bool) string {
 	if !formated {
 		return fmt.Sprintf("%dB", size)
 	}
+	if size < 1024 {
+		return fmt.Sprintf("%dB", size)
+	}
 	type Res struct {
 		size float64
 		ed   string
