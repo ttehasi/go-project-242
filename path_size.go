@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func GetSize(path string, isAll bool) (int64, error) {
+func GetSize(path string, recur, isAll bool) (int64, error) {
 	info, err := os.Lstat(path)
 	if err != nil {
 		return 0, fmt.Errorf("Ошибка %w", err)
@@ -31,14 +31,43 @@ func GetSize(path string, isAll bool) (int64, error) {
 		if !isAll && strings.HasPrefix(info.Name(), ".") {
 			return 0, nil
 		}
+		if recur {
+			return calculaterecDirSize(path, isAll)
+		} else {
+			var totalSize int64
 
-		return calculateDirSize(path, isAll)
+			entries, err := os.ReadDir(path)
+			if err != nil {
+				return 0, fmt.Errorf("ошибка чтения директории %s: %w", path, err)
+			}
+
+			for _, entry := range entries {
+				if !isAll && strings.HasPrefix(entry.Name(), ".") {
+					continue
+				}
+
+				fullPath := filepath.Join(path, entry.Name())
+
+				if !entry.IsDir() {
+					size, err := getFileSize(fullPath, entry, isAll)
+					if err != nil {
+						continue
+					}
+					totalSize += size
+					continue
+				}
+				continue
+
+			}
+
+			return totalSize, nil
+		}
 	}
 
 	return 0, fmt.Errorf("%s - не обычный файл и не директория", path)
 }
 
-func calculateDirSize(dirPath string, isAll bool) (int64, error) {
+func calculaterecDirSize(dirPath string, isAll bool) (int64, error) {
 	var totalSize int64
 
 	entries, err := os.ReadDir(dirPath)
@@ -62,7 +91,7 @@ func calculateDirSize(dirPath string, isAll bool) (int64, error) {
 			continue
 		}
 
-		subDirSize, err := calculateDirSize(fullPath, isAll)
+		subDirSize, err := calculaterecDirSize(fullPath, isAll)
 		if err != nil {
 			continue
 		}
@@ -132,4 +161,12 @@ func FormatSize(size int64, formated bool) string {
 		res.ed = "KB"
 	}
 	return fmt.Sprintf("%.1f%s", res.size, res.ed)
+}
+
+func GetPathSize(path string, recursive, human, all bool) (string, error) {
+	size, err := GetSize(path, recursive, all)
+	if err != nil {
+		return "Ошибка", err
+	}
+	return FormatSize(size, human), nil
 }
