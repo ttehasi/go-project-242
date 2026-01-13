@@ -36,14 +36,14 @@ func TestGetSize(t *testing.T) {
 		fmt.Println(err)
 		t.FailNow()
 	}
-	require.Equal(t, res, int64(4))
+	require.Equal(t, res, int64(10))
 
 	res, err = GetSize("testdata/testfolder", true)
 	if err != nil {
 		fmt.Println(err)
 		t.FailNow()
 	}
-	require.Equal(t, res, int64(8))
+	require.Equal(t, res, int64(14))
 }
 
 func TestFormatSize(t *testing.T) {

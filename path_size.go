@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,89 +21,81 @@ func GetSize(path string, isAll bool) (int64, error) {
 		info = targetInfo
 	}
 	if info.Mode().IsRegular() {
-		if isAll {
-			return info.Size(), nil
-		} else {
-			if strings.HasPrefix(info.Name(), ".") {
-				return int64(0), nil
-			} else {
-				return info.Size(), nil
-			}
+		if !isAll && strings.HasPrefix(info.Name(), ".") {
+			return 0, nil
 		}
+		return info.Size(), nil
 	}
 
 	if info.IsDir() {
-		entries, err := os.ReadDir(path)
-		if err != nil {
-			return 0, fmt.Errorf("ошибка чтения директории %s: %w", path, err)
-		}
-		var totalSize int64 = 0
-		if isAll {
-			for _, entry := range entries {
-				fullPath := path + "/" + entry.Name()
-
-				if entry.IsDir() {
-					continue
-				}
-				info, err := entry.Info()
-				if err != nil {
-					continue
-				}
-				if entry.Type()&os.ModeSymlink != 0 {
-					linkInfo, err := os.Stat(fullPath)
-					if err != nil {
-						continue
-					}
-
-					if linkInfo.Mode().IsRegular() {
-						totalSize += linkInfo.Size()
-					}
-				} else if info.Mode().IsRegular() {
-					totalSize += info.Size()
-				}
-			}
-		} else {
-			if strings.HasPrefix(info.Name(), ".") {
-				return int64(0), nil
-			} else {
-				for _, entry := range entries {
-					fullPath := path + "/" + entry.Name()
-
-					if entry.IsDir() {
-						continue
-					}
-					info, err := entry.Info()
-					if err != nil {
-						continue
-					}
-					if entry.Type()&os.ModeSymlink != 0 {
-						linkInfo, err := os.Stat(fullPath)
-						if err != nil {
-							continue
-						}
-
-						if linkInfo.Mode().IsRegular() {
-							if strings.HasPrefix(linkInfo.Name(), ".") {
-								totalSize += 0
-							} else {
-								totalSize += linkInfo.Size()
-							}
-						}
-					} else if info.Mode().IsRegular() {
-						if strings.HasPrefix(info.Name(), ".") {
-							totalSize += 0
-						} else {
-							totalSize += info.Size()
-						}
-					}
-				}
-			}
+		if !isAll && strings.HasPrefix(info.Name(), ".") {
+			return 0, nil
 		}
 
-		return totalSize, nil
+		return calculateDirSize(path, isAll)
 	}
 
 	return 0, fmt.Errorf("%s - не обычный файл и не директория", path)
+}
+
+func calculateDirSize(dirPath string, isAll bool) (int64, error) {
+	var totalSize int64
+
+	entries, err := os.ReadDir(dirPath)
+	if err != nil {
+		return 0, fmt.Errorf("ошибка чтения директории %s: %w", dirPath, err)
+	}
+
+	for _, entry := range entries {
+		if !isAll && strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+
+		fullPath := filepath.Join(dirPath, entry.Name())
+
+		if !entry.IsDir() {
+			size, err := getFileSize(fullPath, entry, isAll)
+			if err != nil {
+				continue
+			}
+			totalSize += size
+			continue
+		}
+
+		subDirSize, err := calculateDirSize(fullPath, isAll)
+		if err != nil {
+			continue
+		}
+		totalSize += subDirSize
+	}
+
+	return totalSize, nil
+}
+
+func getFileSize(fullPath string, entry os.DirEntry, isAll bool) (int64, error) {
+	if entry.Type()&os.ModeSymlink != 0 {
+		linkInfo, err := os.Stat(fullPath)
+		if err != nil {
+			return 0, err
+		}
+
+		if linkInfo.IsDir() {
+			return 0, nil
+		}
+
+		if !isAll && strings.HasPrefix(linkInfo.Name(), ".") {
+			return 0, nil
+		}
+
+		return linkInfo.Size(), nil
+	}
+
+	info, err := entry.Info()
+	if err != nil {
+		return 0, err
+	}
+
+	return info.Size(), nil
 }
 
 func FormatSize(size int64, formated bool) string {
